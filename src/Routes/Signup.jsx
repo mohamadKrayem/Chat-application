@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {HiPlusCircle} from 'react-icons/hi';
+import Axios from 'axios';
 
 const Signup = () => {
   const [email, setEmail] = useState('');
@@ -13,10 +14,7 @@ const Signup = () => {
   const [uploading, setUploading] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
 
-  function handleSubmit(e){
-    e.preventDefault();
-  }
-
+  
   function validateImage(event){
     let file = event.target.files[0];
     if(file.size >= 1048576) return alert("the images's size must be 1mb or less");
@@ -25,6 +23,25 @@ const Signup = () => {
       setImagePreview(URL.createObjectURL(file));
     }
   }
+  
+  function uploadImage(){
+    const data = new FormData();
+    data.append('file', image);
+    data.append('upload_preset', 'xcyamjmn')
+
+    setUploading(true);
+    Axios.post("https://api.cloudinary.com/v1_1/dcr7zxnmn/image/upload",
+    data
+    ).then(response => {console.log(response.data.secure_url)})
+    .then(()=>{setUploading(false)})
+    .catch(error=> {console.log(error)})
+  }
+
+  function handleSubmit(e){
+    e.preventDefault();
+    uploadImage();
+  }
+
 
   return (
     <div className=' overflow-auto h-full flex bg-orange-50 flex-col'>
@@ -32,7 +49,7 @@ const Signup = () => {
       <form className='p-4 flex flex-col gap-4 mt-auto' onSubmit={handleSubmit}>
         
         <label htmlFor='image' className='self-center'>
-          <img className="inline border-[#006aff] border object-cover w-20 h-20 mr-2 rounded-full" src={imagePreview ||"https://cdn-icons-png.flaticon.com/512/3135/3135715.png"} alt="Profile image"/>
+          <img className='inline border-[#006aff] border object-cover w-20 h-20 mr-2 rounded-full' src={imagePreview ||"https://cdn-icons-png.flaticon.com/512/3135/3135715.png"} alt="Profile image"/>
           <span><HiPlusCircle className='w-6 h-6 translate-x-14 -translate-y-4 text-[#006aff]' /></span>
         </label>
         <input type="file" id="image" hidden accept='image/png, image/jpg, image/jpeg' onChange={validateImage} />
@@ -74,7 +91,9 @@ const Signup = () => {
           />
         </label>
 
-        <button type="submit" className='py-2.5 mt-3 px-4 bg-[#006aff] w-min self-center text-xl rounded-lg text-white'>Submit</button>
+        <button type="submit" className='py-2.5 mt-3 px-4 w-fit bg-[#006aff] w-min self-center text-xl rounded-lg text-white'>
+          {uploading ? "Creating your account":"Sign-up"}
+        </button>
       </form>
 
       <p className='self-center mb-auto p-4'>Already have an accout? <Link to='/login'><a className='text-[#006aff]'>Sign-in</a></Link></p>
